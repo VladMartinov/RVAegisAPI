@@ -55,7 +55,10 @@ namespace RVAegis.Services.Classes
             if (principal?.Identity?.Name is null)
                 return response;
 
-            var identityUser = await applicationContext.Users.FirstOrDefaultAsync(u => u.Login == principal.Identity.Name);
+            var identityUser = await applicationContext.Users
+                .Include(u => u.UserRole)
+                .Include(u => u.UserStatus)
+                .FirstOrDefaultAsync(u => u.Login == principal.Identity.Name);
 
             if (
                 identityUser is null

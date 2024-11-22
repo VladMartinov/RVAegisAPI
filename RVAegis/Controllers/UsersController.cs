@@ -140,7 +140,7 @@ namespace RVAegis.Controllers
         /// <param name="userUDto">Пользователь в формате UserUDto</param>
         /// <returns>Обновленный пользователь системы</returns>
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(UserCDto), 200)]
+        [ProducesResponseType(typeof(UserRDto), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> UpdateUser(uint id, UserUDto userUDto)
@@ -168,7 +168,7 @@ namespace RVAegis.Controllers
 
             await applicationContext.SaveChangesAsync();
 
-            var updatedUserDto = new UserCDto(userToUpdate);
+            var updatedUserDto = new UserRDto(userToUpdate);
             return Ok(updatedUserDto);
         }
 
@@ -179,7 +179,7 @@ namespace RVAegis.Controllers
         /// <param name="id">Уникальный идентификатор удаляемого пользователя</param>
         /// <returns>Обновленный пользователь системы</returns>
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(UserRDto), 201)]
+        [ProducesResponseType(200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteUser(uint id)
@@ -200,8 +200,7 @@ namespace RVAegis.Controllers
 
             await applicationContext.SaveChangesAsync();
 
-            var userDto = new UserRDto(user);
-            return Ok(userDto);
+            return Ok();
         }
 
         // PUT api/users/{id}/status

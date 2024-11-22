@@ -10,11 +10,11 @@ namespace RVAegis.Models.UserModels
 
         [ForeignKey(nameof(UserRole))]
         public required ushort UserRoleId { get; set; }
-        public required UserRole UserRole { get; set; }
+        public UserRole UserRole { get; set; }
 
         [ForeignKey(nameof(UserStatus))]
         public required ushort UserStatusId { get; set; }
-        public required UserStatus UserStatus { get; set; }
+        public UserStatus UserStatus { get; set; }
 
         [MaxLength(155)]
         public required string FullName { get; set; }

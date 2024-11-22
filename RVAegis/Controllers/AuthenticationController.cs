@@ -2,7 +2,6 @@
 using RVAegis.Contexts;
 using RVAegis.Models.Auth;
 using RVAegis.Models.AuthModels;
-using RVAegis.Services.Classes;
 using RVAegis.Services.Interfaces;
 
 namespace RVAegis.Controllers
@@ -10,17 +9,17 @@ namespace RVAegis.Controllers
     [Produces("application/json")]
     [ApiController]
     [Route("api/authentication")]
-    public class AuthenticationController(ApplicationContext applicationContext, AuthService authService) : Controller
+    public class AuthenticationController(ApplicationContext applicationContext, IAuthService authService) : Controller
     {
         private readonly ApplicationContext applicationContext = applicationContext;
-        private readonly AuthService authService = authService;
+        private readonly IAuthService authService = authService;
 
-        private void AddCookie(string key, string value)
+        private void AddCookie(string key, string value, DateTime expires)
         {
             HttpContext.Response.Cookies.Append(key, value,
                 new CookieOptions
                 {
-                    Expires = DateTime.UtcNow.AddDays(7),
+                    Expires = expires,
                     HttpOnly = true,
                     Secure = true,
                     IsEssential = true,
@@ -47,8 +46,8 @@ namespace RVAegis.Controllers
             )
                 return Unauthorized();
 
-            AddCookie("AccessToken", result.JwtToken);
-            AddCookie("RefreshToken", result.RefreshToken);
+            AddCookie("AccessToken", result.JwtToken, DateTime.UtcNow.AddHours(4));
+            AddCookie("RefreshToken", result.RefreshToken, DateTime.UtcNow.AddDays(5));
 
             return Ok();
         }
@@ -95,7 +94,6 @@ namespace RVAegis.Controllers
 
             var result = await authService.RefreshToken(model);
 
-
             if (
                 !result.IsLoggedIn
                 || string.IsNullOrEmpty(result.JwtToken)
@@ -103,8 +101,8 @@ namespace RVAegis.Controllers
             )
                 return BadRequest("Failed to refresh token");
 
-            AddCookie("AccessToken", result.JwtToken);
-            AddCookie("RefreshToken", result.RefreshToken);
+            AddCookie("AccessToken", result.JwtToken, DateTime.UtcNow.AddHours(4));
+            AddCookie("RefreshToken", result.RefreshToken, DateTime.UtcNow.AddDays(5));
 
             return Ok();
         }
@@ -117,15 +115,15 @@ namespace RVAegis.Controllers
         [HttpPut("changepassword")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public IActionResult ChangeUserPassword(LoginRequest userCreds)
+        public async Task<IActionResult> ChangeUserPasswordAsync(LoginRequest userCreds)
         {
             var user = applicationContext.Users.FirstOrDefault(u => u.Login == userCreds.Login);
             if (user == null) return NotFound("User with this login not found");
 
-            if (!string.IsNullOrWhiteSpace(userCreds.Password))
-            {
-                user.Password = BCrypt.Net.BCrypt.HashPassword(userCreds.Password);
-            }
+            if (string.IsNullOrWhiteSpace(userCreds.Password)) return BadRequest("Failed to update password");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(userCreds.Password);
+            await applicationContext.SaveChangesAsync();
 
             return Ok();
         }
