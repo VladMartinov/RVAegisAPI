@@ -11,9 +11,6 @@ namespace RVAegis.Controllers
     [Route("api/authentication")]
     public class AuthenticationController(ApplicationContext applicationContext, IAuthService authService) : Controller
     {
-        private readonly ApplicationContext applicationContext = applicationContext;
-        private readonly IAuthService authService = authService;
-
         private void AddCookie(string key, string value, DateTime expires)
         {
             HttpContext.Response.Cookies.Append(key, value,

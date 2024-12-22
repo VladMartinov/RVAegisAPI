@@ -13,8 +13,6 @@ namespace RVAegis.Controllers
     [Route("api/users")]
     public class UsersController(ApplicationContext applicationContext) : Controller
     {
-        private readonly ApplicationContext applicationContext = applicationContext;
-
         // GET api/users
         /// <summary>
         /// Получение всех пользователей системы.

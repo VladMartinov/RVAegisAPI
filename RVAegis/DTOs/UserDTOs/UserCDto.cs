@@ -28,6 +28,9 @@ namespace RVAegis.DTOs.UserDTOs
         public UserCDto()
         {
             // Empty constructor for deserialization
+            FullName = string.Empty;
+            Login = string.Empty;
+            Password = string.Empty;
         }
     }
 }

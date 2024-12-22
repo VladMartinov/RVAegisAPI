@@ -26,6 +26,7 @@ namespace RVAegis.DTOs.UserDTOs
         public UserRDto()
         {
             // Empty constructor for deserialization
+            FullName = string.Empty;
         }
     }
 }
