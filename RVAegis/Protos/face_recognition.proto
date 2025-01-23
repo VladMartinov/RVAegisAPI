@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option csharp_namespace = "RVAegis";
+
+package face_recognition;
+
+service FaceRecognition {
+  // Метод для отправки изображений и меток
+  rpc SendImages (ImageRequest) returns (ImageResponse);
+
+  // Метод для получения результатов распознавания
+  rpc GetResults (ResultRequest) returns (ResultResponse);
+}
+
+// Сообщение для передачи изображений и меток
+message ImageRequest {
+  repeated bytes images = 1;		// Массив изображений в байтах
+  repeated string labels = 2;		// Массив меток (лейблов)
+}
+
+// Ответ на отправку изображений
+message ImageResponse {
+  bool success = 1;					// Успешно ли приняты данные
+  string message = 2;				// Сообщение (например, ошибка или подтверждение)
+}
+
+// Сообщение для запроса результатов
+message ResultRequest {
+}
+
+// Сообщение с результатами распознавания
+message ResultResponse {
+  repeated bytes processed_images = 1;		// Обработанные изображения
+  repeated string recognized_labels = 2;	// Распознанные метки
+}
