@@ -23,7 +23,7 @@
                     }
                 }
 
-                await Task.Delay(100, stoppingToken); // Задержка между запросами
+                await Task.Delay(100, stoppingToken);
             }
         }
     }

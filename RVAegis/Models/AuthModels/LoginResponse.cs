@@ -1,6 +1,6 @@
 ﻿using RVAegis.Models.UserModels;
 
-namespace RVAegis.Models.Auth
+namespace RVAegis.Models.AuthModels
 {
     public class LoginResponse
     {

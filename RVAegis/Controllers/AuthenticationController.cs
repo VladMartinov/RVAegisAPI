@@ -2,6 +2,8 @@
 using RVAegis.Contexts;
 using RVAegis.Models.Auth;
 using RVAegis.Models.AuthModels;
+using RVAegis.Models.HistoryModels;
+using RVAegis.Services.Classes;
 using RVAegis.Services.Interfaces;
 
 namespace RVAegis.Controllers
@@ -9,7 +11,7 @@ namespace RVAegis.Controllers
     [Produces("application/json")]
     [ApiController]
     [Route("api/authentication")]
-    public class AuthenticationController(ApplicationContext applicationContext, IAuthService authService) : Controller
+    public class AuthenticationController(ApplicationContext applicationContext, IAuthService authService, ILoggingService loggingService) : Controller
     {
         private void AddCookie(string key, string value, DateTime expires)
         {
@@ -40,11 +42,14 @@ namespace RVAegis.Controllers
                 !result.IsLoggedIn
                 || string.IsNullOrEmpty(result.JwtToken)
                 || string.IsNullOrEmpty(result.RefreshToken)
+                || result.User == null
             )
                 return Unauthorized();
 
             AddCookie("AccessToken", result.JwtToken, DateTime.UtcNow.AddHours(4));
             AddCookie("RefreshToken", result.RefreshToken, DateTime.UtcNow.AddDays(5));
+
+            await loggingService.AddHistoryRecordAsync(result.User, TypeActionEnum.Authorisation);
 
             return Ok();
         }
@@ -56,7 +61,7 @@ namespace RVAegis.Controllers
         [HttpPost("logout")]
         [ProducesResponseType(302)]
         [ProducesResponseType(401)]
-        public IActionResult AuthenticateUser()
+        public async Task<IActionResult> AuthenticateUserAsync()
         {
             var model = new TokenRequest
             {
@@ -64,7 +69,9 @@ namespace RVAegis.Controllers
                 RefreshToken = Request.Cookies["RefreshToken"] ?? ""
             };
 
-            if (String.IsNullOrEmpty(model.JwtToken) || String.IsNullOrEmpty(model.RefreshToken)) return Unauthorized();
+            if (string.IsNullOrEmpty(model.JwtToken) || string.IsNullOrEmpty(model.RefreshToken)) return Unauthorized();
+
+            await loggingService.AddHistoryRecordAsync(model.JwtToken, TypeActionEnum.LoggingOut);
 
             HttpContext.Response.Cookies.Delete("AccessToken");
             HttpContext.Response.Cookies.Delete("RefreshToken");
@@ -121,6 +128,8 @@ namespace RVAegis.Controllers
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(userCreds.Password);
             await applicationContext.SaveChangesAsync();
+
+            await loggingService.AddHistoryRecordAsync(user, TypeActionEnum.UpdateUserPassword);
 
             return Ok();
         }

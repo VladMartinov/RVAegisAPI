@@ -1,4 +1,5 @@
-﻿using RVAegis.Models.UserModels;
+﻿using RVAegis.Models.HistoryModels;
+using RVAegis.Models.UserModels;
 
 namespace RVAegis.Contexts
 {
@@ -42,15 +43,33 @@ namespace RVAegis.Contexts
                         FullName = "Admin",
                         Photo = null,
                         Login = "RVTech\\admin",
-                        Password = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd")
+                        Password = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd"),
+                        HistoryRecords = []
                     });
                     await context.SaveChangesAsync();
                 }
                 else
                 {
-                    //  Обработка ошибки (важно!)
+                    //  Обработка ошибки
                     throw new Exception("Не удалось найти роль Администратор или статус Активен");
                 }
+            }
+
+            if (!context.TypeActions.Any())
+            {
+                await context.TypeActions.AddRangeAsync(
+                    new TypeAction { ActionDescription = "Авторизация в систему", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Выход из системы", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Создание изображения", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Редактирование изображения", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Удаление изображения", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Создание пользователя", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Редактирование пользователя", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Смена статуса пользователю", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Обновление пароля", HistoryRecords = [] },
+                    new TypeAction { ActionDescription = "Удаление пользователя", HistoryRecords = [] }
+                );
+                await context.SaveChangesAsync();
             }
         }
     }

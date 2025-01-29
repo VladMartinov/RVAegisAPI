@@ -1,14 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RVAegis.Contexts;
 using RVAegis.DTOs.ImageDTOs;
+using RVAegis.Models.HistoryModels;
 using RVAegis.Models.ImageModels;
+using RVAegis.Services.Interfaces;
 
 namespace RVAegis.Controllers
 {
     [Produces("application/json")]
     [ApiController]
     [Route("api/images")]
-    public class ImagesController(ApplicationContext applicationContext) : Controller
+    public class ImagesController(ApplicationContext applicationContext, ILoggingService loggingService) : Controller
     {
         // GET api/images
         /// <summary>
@@ -71,6 +73,8 @@ namespace RVAegis.Controllers
 
             await applicationContext.SaveChangesAsync();
 
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.CreateImage);
+
             var createdImageDto = new ImageRUDto(newImage);
             return CreatedAtAction(nameof(CreateImage), new { id = newImage.ImageId }, createdImageDto);
         }
@@ -98,7 +102,9 @@ namespace RVAegis.Controllers
             imageToUpdate.DateUpdate = DateTime.UtcNow;
 
             await applicationContext.SaveChangesAsync();
-            
+
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.UpdateImage);
+
             return Ok(new ImageRUDto(imageToUpdate));
         }
 
@@ -120,6 +126,8 @@ namespace RVAegis.Controllers
             applicationContext.Images.Remove(image);
 
             await applicationContext.SaveChangesAsync();
+
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.DeleteImage);
 
             return Ok();
         }

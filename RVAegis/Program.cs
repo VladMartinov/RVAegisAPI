@@ -50,6 +50,7 @@ builder.Services
 
 // Add services to the container.
 builder.Services.AddLogging(configure => configure.AddConsole());
+builder.Services.AddScoped<ILoggingService, LoggingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddTransient<MigrationManager>();
 

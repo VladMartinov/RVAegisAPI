@@ -4,6 +4,8 @@ using RVAegis.DTOs.UserDTOs;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RVAegis.Services.Interfaces;
+using RVAegis.Models.HistoryModels;
 
 namespace RVAegis.Controllers
 {
@@ -11,7 +13,7 @@ namespace RVAegis.Controllers
     [ApiController]
     [Authorize]
     [Route("api/users")]
-    public class UsersController(ApplicationContext applicationContext) : Controller
+    public class UsersController(ApplicationContext applicationContext, ILoggingService loggingService) : Controller
     {
         // GET api/users
         /// <summary>
@@ -117,11 +119,14 @@ namespace RVAegis.Controllers
                 FullName = userCDto.FullName,
                 Photo = userCDto.Photo is not null ? Convert.FromBase64String(userCDto.Photo) : null,
                 Login = userCDto.Login,
-                Password = BCrypt.Net.BCrypt.HashPassword(userCDto.Password)
+                Password = BCrypt.Net.BCrypt.HashPassword(userCDto.Password),
+                HistoryRecords = []
             };
 
             applicationContext.Users.Add(user);
             await applicationContext.SaveChangesAsync();
+
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.CreateUser);
 
             var createdUserDto = new UserCDto(user);
             return CreatedAtAction(nameof(CreateUser), new { id = user.UserId }, createdUserDto);
@@ -166,6 +171,8 @@ namespace RVAegis.Controllers
 
             await applicationContext.SaveChangesAsync();
 
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.UpdateUser);
+
             var updatedUserDto = new UserRDto(userToUpdate);
             return Ok(updatedUserDto);
         }
@@ -198,6 +205,8 @@ namespace RVAegis.Controllers
 
             await applicationContext.SaveChangesAsync();
 
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.DeleteUser);
+
             return Ok();
         }
 
@@ -229,6 +238,8 @@ namespace RVAegis.Controllers
             user.UserStatus = statusObj;
 
             await applicationContext.SaveChangesAsync();
+
+            await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.ChangeUserStatus);
 
             var userDto = new UserRDto(user);
             return Ok(userDto);

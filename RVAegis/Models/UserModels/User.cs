@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RVAegis.Models.HistoryModels;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RVAegis.Models.UserModels
@@ -25,5 +26,7 @@ namespace RVAegis.Models.UserModels
 
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiry { get; set; }
+
+        public required ICollection<HistoryRecord> HistoryRecords { get; set; }
     }
 }
