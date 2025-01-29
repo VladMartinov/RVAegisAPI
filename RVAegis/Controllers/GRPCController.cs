@@ -1,7 +1,6 @@
-﻿using Google.Protobuf;
-using Grpc.Net.Client;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RVAegis.Contexts;
+using RVAegis.Helpers;
 
 namespace RVAegis.Controllers
 {
@@ -18,7 +17,7 @@ namespace RVAegis.Controllers
             _applicationContext = applicationContext;
 
             // Указываем адрес gRPC сервера
-            string grpcServerAddress = "http://localhost:5096";
+            string grpcServerAddress = "http://localhost:50052";
 
             // Создаём клиент
             _faceRecognitionClient = new FaceRecognitionClient(grpcServerAddress);

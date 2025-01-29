@@ -1,23 +1,21 @@
-﻿using Google.Protobuf;
+﻿using Google.Protobuf.Collections;
+using Google.Protobuf;
 using Grpc.Net.Client;
-using Google.Protobuf.Collections;
-using RVAegis;
 
-namespace RVAegis.Helpers
+namespace RVAegisGrpcService
 {
-    public class FaceRecognitionClient
+    public class PythonFaceRecognitionClient
     {
         private readonly FaceRecognition.FaceRecognitionClient _client;
 
-        public FaceRecognitionClient(string grpcServerAddress)
+        public PythonFaceRecognitionClient(string pythonGrpcServerAddress)
         {
-            var channel = GrpcChannel.ForAddress(grpcServerAddress);
+            var channel = GrpcChannel.ForAddress(pythonGrpcServerAddress);
             _client = new FaceRecognition.FaceRecognitionClient(channel);
         }
 
-        public async Task<bool> SendImagesAsync(List<byte[]> images, List<string> labels)
+        public async Task<bool> SendImagesToPythonAsync(List<byte[]> images, List<string> labels)
         {
-            // Преобразуем List<byte[]> в RepeatedField<ByteString>
             var imageByteStrings = new RepeatedField<ByteString>();
             foreach (var image in images)
             {
@@ -29,7 +27,7 @@ namespace RVAegis.Helpers
             return response.Success;
         }
 
-        public async Task<ResultResponse> GetResultsAsync()
+        public async Task<ResultResponse> GetResultsFromPythonAsync()
         {
             var request = new ResultRequest();
             var response = await _client.GetResultsAsync(request);

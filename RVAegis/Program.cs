@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RVAegis;
 using RVAegis.Contexts;
 using RVAegis.Helpers;
 using RVAegis.Services.Classes;
@@ -59,6 +60,15 @@ builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServe
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Добавляем gRPC клиент для взаимодействия с Python сервисом
+builder.Services.AddGrpcClient<FaceRecognition.FaceRecognitionClient>(options =>
+{
+    options.Address = new Uri("http://localhost:50052");
+});
+
+// Добавляем фоновую задачу для запроса фото с Python сервиса
+builder.Services.AddHostedService<ImageBroadcastService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -79,6 +89,10 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Добавляем WebSocket middleware
+app.UseWebSockets();
+app.UseMiddleware<WebSocketMiddleware>();
 
 app.MapControllers();
 
