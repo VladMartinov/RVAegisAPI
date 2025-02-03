@@ -10,6 +10,7 @@ namespace RVAegis.DTOs.UserDTOs
         public ushort UserStatus { get; set; }
 
         public string FullName { get; set; }
+        public string Email { get; set; }
         public string? Photo { get; set; }
 
         public UserRDto(User user)
@@ -20,6 +21,7 @@ namespace RVAegis.DTOs.UserDTOs
             UserStatus = user.UserStatusId;
 
             FullName = user.FullName;
+            Email = user.Email;
             Photo = user.Photo is not null ? Convert.ToBase64String(user.Photo) : null;
         }
 
@@ -27,6 +29,7 @@ namespace RVAegis.DTOs.UserDTOs
         {
             // Empty constructor for deserialization
             FullName = string.Empty;
+            Email = string.Empty;
         }
     }
 }

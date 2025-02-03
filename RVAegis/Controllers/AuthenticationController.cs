@@ -1,17 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using RVAegis.Contexts;
+using RVAegis.Helpers;
 using RVAegis.Models.Auth;
 using RVAegis.Models.AuthModels;
 using RVAegis.Models.HistoryModels;
 using RVAegis.Services.Classes;
 using RVAegis.Services.Interfaces;
+using System.Security.Cryptography;
 
 namespace RVAegis.Controllers
 {
     [Produces("application/json")]
     [ApiController]
     [Route("api/authentication")]
-    public class AuthenticationController(ApplicationContext applicationContext, IAuthService authService, ILoggingService loggingService) : Controller
+    public class AuthenticationController(ApplicationContext applicationContext, IConfiguration configuration, IAuthService authService, ILoggingService loggingService, IEmailService emailService) : Controller
     {
         private void AddCookie(string key, string value, DateTime expires)
         {
@@ -111,24 +115,52 @@ namespace RVAegis.Controllers
             return Ok();
         }
 
-        // PUT api/authentication/changepassword
-        /// <summary>
-        /// Метод по обновлению пароля пользователя
-        /// </summary>
-        /// <param name="userCreds">Объект содержащий Login и Password</param>
-        [HttpPut("changepassword")]
+        [HttpPost("forgot-password")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> ChangeUserPasswordAsync(LoginRequest userCreds)
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            var user = applicationContext.Users.FirstOrDefault(u => u.Login == userCreds.Login);
-            if (user == null) return NotFound("User with this login not found");
+            var user = await applicationContext.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            if (string.IsNullOrWhiteSpace(userCreds.Password)) return BadRequest("Failed to update password");
+            if (user == null)
+                return Ok();
 
-            user.Password = BCrypt.Net.BCrypt.HashPassword(userCreds.Password);
+            // Генерация токена
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            user.PasswordResetToken = token;
+            user.ResetTokenExpires = DateTime.UtcNow.AddHours(1);
+
             await applicationContext.SaveChangesAsync();
 
+            // Кодирование токена для URL
+            var encodedToken = Uri.EscapeDataString(token);
+
+            // Формирование безопасной ссылки
+            var resetLink = $"{configuration["WebClientAddress"]}/reset-password?token={encodedToken}";
+
+            // Отправка письма
+            await emailService.SendPasswordResetEmailAsync(user.Email, resetLink);
+
+            return Ok();
+        }
+
+        [HttpPost("reset-password")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var user = await applicationContext.Users
+                .FirstOrDefaultAsync(u => u.PasswordResetToken == request.Token);
+
+            if (user == null || user.ResetTokenExpires < DateTime.UtcNow)
+                return BadRequest("Недействительный токен восстановления");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.PasswordResetToken = null;
+            user.ResetTokenExpires = null;
+
+            await applicationContext.SaveChangesAsync();
             await loggingService.AddHistoryRecordAsync(user, TypeActionEnum.UpdateUserPassword);
 
             return Ok();

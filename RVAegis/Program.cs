@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using RVAegis;
 using RVAegis.Contexts;
@@ -49,9 +50,12 @@ builder.Services
 );
 
 // Add services to the container.
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
 builder.Services.AddLogging(configure => configure.AddConsole());
 builder.Services.AddScoped<ILoggingService, LoggingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddTransient<MigrationManager>();
 
 builder.Services.AddControllers();
@@ -70,6 +74,17 @@ builder.Services.AddGrpcClient<FaceRecognition.FaceRecognitionClient>(options =>
 // ƒобавл€ем фоновую задачу дл€ запроса фото с Python сервиса
 builder.Services.AddHostedService<ImageBroadcastService>();
 
+// ƒобавл€ем CORS политику дл€ нашего API
+builder.Services.AddCors(options => {
+            options.AddPolicy("WebClient", policyBuilder =>
+            {
+                policyBuilder.WithOrigins(builder.Configuration.GetSection("WebClientAddress").Value);
+                policyBuilder.AllowAnyHeader();
+                policyBuilder.AllowAnyMethod();
+                policyBuilder.AllowCredentials();
+            });
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -87,6 +102,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("WebClient");
 
 app.UseAuthentication();
 app.UseAuthorization();

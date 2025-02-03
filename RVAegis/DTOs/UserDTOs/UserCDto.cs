@@ -12,6 +12,7 @@ namespace RVAegis.DTOs.UserDTOs
 
         public string Login { get; set; }
         public string Password { get; set; }
+        public string Email { get; set; }
 
         public UserCDto(User user)
         {
@@ -23,6 +24,7 @@ namespace RVAegis.DTOs.UserDTOs
 
             Login = user.Login;
             Password = user.Password;
+            Email = user.Email;
         }
 
         public UserCDto()
@@ -31,6 +33,7 @@ namespace RVAegis.DTOs.UserDTOs
             FullName = string.Empty;
             Login = string.Empty;
             Password = string.Empty;
+            Email = string.Empty;
         }
     }
 }

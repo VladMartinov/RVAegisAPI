@@ -44,6 +44,7 @@ namespace RVAegis.Contexts
                         Photo = null,
                         Login = "RVTech\\admin",
                         Password = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd"),
+                        Email = "rv.admin@mail.ru",
                         HistoryRecords = []
                     });
                     await context.SaveChangesAsync();

@@ -120,6 +120,7 @@ namespace RVAegis.Controllers
                 Photo = userCDto.Photo is not null ? Convert.FromBase64String(userCDto.Photo) : null,
                 Login = userCDto.Login,
                 Password = BCrypt.Net.BCrypt.HashPassword(userCDto.Password),
+                Email = userCDto.Email,
                 HistoryRecords = []
             };
 

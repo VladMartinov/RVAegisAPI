@@ -56,18 +56,5 @@ namespace RVAegis.Controllers
                 return StatusCode(500, $"Error processing images: {ex.Message}");
             }
         }
-
-        // GET api/grpc/process-image
-        /// <summary>
-        /// Метод по проучению обработонного изображения
-        /// </summary>
-        [HttpGet("get-results")]
-        public async Task<IActionResult> GetResults()
-        {
-            // Вызываем метод gRPC клиента
-            var results = await _faceRecognitionClient.GetResultsAsync();
-
-            return Ok(results);
-        }
     }
 }
