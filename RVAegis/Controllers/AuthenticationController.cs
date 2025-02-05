@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using RVAegis.Contexts;
-using RVAegis.Helpers;
 using RVAegis.Models.Auth;
 using RVAegis.Models.AuthModels;
 using RVAegis.Models.HistoryModels;
-using RVAegis.Services.Classes;
 using RVAegis.Services.Interfaces;
 using System.Security.Cryptography;
 
@@ -26,6 +23,16 @@ namespace RVAegis.Controllers
                     HttpOnly = true,
                     Secure = true,
                     IsEssential = true,
+                    SameSite = SameSiteMode.None
+                });
+        }
+
+        private void DeleteCookie(string key)
+        {
+            HttpContext.Response.Cookies.Delete(key,
+                new CookieOptions
+                {
+                    Secure = true,
                     SameSite = SameSiteMode.None
                 });
         }
@@ -77,8 +84,8 @@ namespace RVAegis.Controllers
 
             await loggingService.AddHistoryRecordAsync(model.JwtToken, TypeActionEnum.LoggingOut);
 
-            HttpContext.Response.Cookies.Delete("AccessToken");
-            HttpContext.Response.Cookies.Delete("RefreshToken");
+            DeleteCookie("AccessToken");
+            DeleteCookie("RefreshToken");
 
             return Ok();
         }

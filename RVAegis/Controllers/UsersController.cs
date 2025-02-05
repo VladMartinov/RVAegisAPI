@@ -102,8 +102,8 @@ namespace RVAegis.Controllers
             if (applicationContext.Users.Any(x => x.Login == userCDto.Login))
                 return StatusCode(400, $"The user with login: \"${userCDto.Login}\" is already exist!");
 
-            var role = applicationContext.UserRoles.FirstOrDefault(x => x.RoleId == userCDto.UserRole);
-            var status = applicationContext.UserStatuses.FirstOrDefault(x => x.StatusId == userCDto.UserStatus);
+            var role = applicationContext.UserRoles.FirstOrDefault(x => x.RoleId == userCDto.UserRoleId);
+            var status = applicationContext.UserStatuses.FirstOrDefault(x => x.StatusId == userCDto.UserStatusId);
 
             if (role == null || status == null)
             {
@@ -112,9 +112,9 @@ namespace RVAegis.Controllers
 
             var user = new User
             {
-                UserRoleId = userCDto.UserRole,
+                UserRoleId = userCDto.UserRoleId,
                 UserRole = role,
-                UserStatusId = userCDto.UserStatus,
+                UserStatusId = userCDto.UserStatusId,
                 UserStatus = status,
                 FullName = userCDto.FullName,
                 Photo = userCDto.Photo is not null ? Convert.FromBase64String(userCDto.Photo) : null,
@@ -153,22 +153,34 @@ namespace RVAegis.Controllers
 
             if (userToUpdate == null) return NotFound("User by this ID not founded");
 
-            var role = applicationContext.UserRoles.FirstOrDefault(x => x.RoleId == userUDto.UserRole);
-            var status = applicationContext.UserStatuses.FirstOrDefault(x => x.StatusId == userUDto.UserStatus);
+            UserRole? role = null;
+            if (userToUpdate.UserRoleId != userUDto.UserRoleId)
+                role = applicationContext.UserRoles.FirstOrDefault(x => x.RoleId == userUDto.UserRoleId);
+            
+            UserStatus? status = null;
+            if (userToUpdate.UserStatusId != userUDto.UserStatusId)
+                status = applicationContext.UserStatuses.FirstOrDefault(x => x.StatusId == userUDto.UserStatusId);
 
-            if (role == null || status == null)
+            if (role != null)
             {
-                return BadRequest("User role or status is not define.");
+                userToUpdate.UserRoleId = userUDto.UserRoleId;
+                userToUpdate.UserRole = role;
             }
 
-            userToUpdate.UserRoleId = userUDto.UserRole;
-            userToUpdate.UserRole = role;
+            if (status != null)
+            {
+                userToUpdate.UserStatusId = userUDto.UserStatusId;
+                userToUpdate.UserStatus = status;
+            }
 
-            userToUpdate.UserStatusId = userUDto.UserStatus;
-            userToUpdate.UserStatus = status;
+            if (userToUpdate.FullName != userUDto.FullName && !string.IsNullOrEmpty(userUDto.FullName.Trim()))
+                userToUpdate.FullName = userUDto.FullName;
+            
+            if (!string.IsNullOrEmpty(userUDto.Photo))
+                userToUpdate.Photo = Convert.FromBase64String(userUDto.Photo);
 
-            userToUpdate.FullName = userUDto.FullName;
-            if (!string.IsNullOrEmpty(userUDto.Photo)) userToUpdate.Photo = Convert.FromBase64String(userUDto.Photo);
+            if (userToUpdate.Email != userUDto.Email)
+                userToUpdate.Email = userUDto.Email;
 
             await applicationContext.SaveChangesAsync();
 

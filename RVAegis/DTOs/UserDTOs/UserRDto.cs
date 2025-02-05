@@ -6,8 +6,8 @@ namespace RVAegis.DTOs.UserDTOs
     {
         public uint UserId { get; set; }
 
-        public ushort UserRole { get; set; }
-        public ushort UserStatus { get; set; }
+        public ushort UserRoleId { get; set; }
+        public ushort UserStatusId { get; set; }
 
         public string FullName { get; set; }
         public string Email { get; set; }
@@ -17,8 +17,8 @@ namespace RVAegis.DTOs.UserDTOs
         {
             UserId = user.UserId;
 
-            UserRole = user.UserRoleId;
-            UserStatus = user.UserStatusId;
+            UserRoleId = user.UserRoleId;
+            UserStatusId = user.UserStatusId;
 
             FullName = user.FullName;
             Email = user.Email;

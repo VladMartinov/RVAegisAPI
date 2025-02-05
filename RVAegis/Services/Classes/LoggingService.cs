@@ -11,13 +11,10 @@ namespace RVAegis.Services.Classes
 {
     public class LoggingService(ApplicationContext applicationContext, IConfiguration configuration) : ILoggingService
     {
-        private readonly ApplicationContext _applicationContext = applicationContext;
-        private readonly IConfiguration _configuration = configuration;
-
         /* Метод по добавлению записи активности в базу данных */
         public async Task AddHistoryRecordAsync(User user, TypeActionEnum typeActionEnum)
         {
-            var action = _applicationContext.TypeActions.FirstOrDefault(x => x.ActionId == (uint)typeActionEnum);
+            var action = applicationContext.TypeActions.FirstOrDefault(x => x.ActionId == (uint)typeActionEnum);
 
             if (action == null) return;
 
@@ -30,8 +27,8 @@ namespace RVAegis.Services.Classes
                 User = user,
             };
 
-            _applicationContext.HistoryRecords.Add(record);
-            await _applicationContext.SaveChangesAsync();
+            applicationContext.HistoryRecords.Add(record);
+            await applicationContext.SaveChangesAsync();
         }
 
         /* Метод по добавлению записи активности в базу данных */
@@ -45,7 +42,7 @@ namespace RVAegis.Services.Classes
 
             if (user == null) return;
             
-            var action = _applicationContext.TypeActions.FirstOrDefault(x => x.ActionId == (uint)typeActionEnum);
+            var action = applicationContext.TypeActions.FirstOrDefault(x => x.ActionId == (uint)typeActionEnum);
 
             if (action == null) return;
 
@@ -58,14 +55,14 @@ namespace RVAegis.Services.Classes
                 User = user,
             };
 
-            _applicationContext.HistoryRecords.Add(record);
-            await _applicationContext.SaveChangesAsync();
+            applicationContext.HistoryRecords.Add(record);
+            await applicationContext.SaveChangesAsync();
         }
 
         /* Метод по получению логина пользователя из токена */
         private string GetUserLoginFromToken(string token)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value ?? ""));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("Jwt:Key").Value ?? ""));
 
             var validationParameters = new TokenValidationParameters()
             {
