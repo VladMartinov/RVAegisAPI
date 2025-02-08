@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using RVAegis;
@@ -68,8 +69,11 @@ builder.Services.AddSwaggerGen();
 // ƒобавл€ем gRPC клиент дл€ взаимодействи€ с Python сервисом
 builder.Services.AddGrpcClient<FaceRecognition.FaceRecognitionClient>(options =>
 {
-    options.Address = new Uri("http://localhost:50052");
+    options.Address = new Uri(builder.Configuration.GetSection("gRPC:ServiceAddress").Value);
 });
+
+// ƒобавл€ем фоновую задачу дл€ загрузки изображений
+builder.Services.AddHostedService<ImageLoaderService>();
 
 // ƒобавл€ем фоновую задачу дл€ запроса фото с Python сервиса
 builder.Services.AddHostedService<ImageBroadcastService>();

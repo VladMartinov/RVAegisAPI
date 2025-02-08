@@ -36,6 +36,42 @@ namespace RVAegis.Controllers
             return Ok(usersDtos);
         }
 
+        // GET api/users/users-roles
+        /// <summary>
+        /// Получение всех ролей пользователей.
+        /// </summary>
+        /// <returns>Список ролей</returns>
+        [HttpGet("users-roles")]
+        [ProducesResponseType(typeof(List<UserRoleDto>), 200)]
+        [ProducesResponseType(401)]
+        public IActionResult GetUsersRoles()
+        {
+            var usersRolesDtos = new List<UserRoleDto>();
+
+            foreach (var role in applicationContext.UserRoles)
+                usersRolesDtos.Add(new UserRoleDto(role));
+
+            return Ok(usersRolesDtos);
+        }
+
+        // GET api/users/users-statuses
+        /// <summary>
+        /// Получение всех статусов пользователей.
+        /// </summary>
+        /// <returns>Список статусов</returns>
+        [HttpGet("users-statuses")]
+        [ProducesResponseType(typeof(List<UserStatusDto>), 200)]
+        [ProducesResponseType(401)]
+        public IActionResult GetUsersStatuses()
+        {
+            var usersStatusesDtos = new List<UserStatusDto>();
+
+            foreach (var status in applicationContext.UserStatuses)
+                usersStatusesDtos.Add(new UserStatusDto(status));
+
+            return Ok(usersStatusesDtos);
+        }
+
         // GET api/users/current-user
         /// <summary>
         /// Получение информации об текущем пользователе.
@@ -94,7 +130,7 @@ namespace RVAegis.Controllers
         /// <param name="userCDto">Пользователь в формате UserCDto</param>
         /// <returns>Новый пользователь системы</returns>
         [HttpPost]
-        [ProducesResponseType(typeof(UserCDto), 201)]
+        [ProducesResponseType(typeof(UserRDto), 201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
         public async Task<IActionResult> CreateUser(UserCDto userCDto)
@@ -129,7 +165,7 @@ namespace RVAegis.Controllers
 
             await loggingService.AddHistoryRecordAsync(Request.Cookies["AccessToken"] ?? string.Empty, TypeActionEnum.CreateUser);
 
-            var createdUserDto = new UserCDto(user);
+            var createdUserDto = new UserRDto(user);
             return CreatedAtAction(nameof(CreateUser), new { id = user.UserId }, createdUserDto);
         }
 
