@@ -1,4 +1,5 @@
 ﻿using Grpc.Core;
+using System.Text.Json;
 
 namespace RVAegis.Services.Classes
 {
@@ -29,14 +30,21 @@ namespace RVAegis.Services.Classes
 
                         // Запрос результатов
                         var result = await _grpcClient.GetResultsAsync(new ResultRequest(), cancellationToken: stoppingToken);
+                        Console.WriteLine($"Получение результата. Количество камер: {result.CameraFrames.Count}");
 
-                        Console.WriteLine($"Получение результата. Количество изображений: {result.ProcessedImages.Count}");
-                        if (result.ProcessedImages.Count != 0)
+                        if (result.CameraFrames.Count > 0)
                         {
-                            foreach (var imageData in result.ProcessedImages)
+                            foreach (var cameraFrame in result.CameraFrames)
                             {
-                                Console.WriteLine($"Отправка данных изображения размером: {imageData.Length} байт");
-                                await Helpers.WebSocketMiddleware.BroadcastImageAsync(imageData.ToByteArray());
+                                var message = new
+                                {
+                                    cameraIndex = cameraFrame.CameraIndex,
+                                    images = cameraFrame.Frames.Select(f => Convert.ToBase64String(f.ToByteArray())).ToList()
+                                };
+
+                                string jsonMessage = JsonSerializer.Serialize(message);
+                                Console.WriteLine($"Отправка данных для камеры {cameraFrame.CameraIndex} (количество изображений: {cameraFrame.Frames.Count})");
+                                await Helpers.WebSocketMiddleware.BroadcastJsonAsync(jsonMessage);
                             }
                         }
                     }

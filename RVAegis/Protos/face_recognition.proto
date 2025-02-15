@@ -21,15 +21,21 @@ message ImageRequest {
 // Ответ на отправку изображений
 message ImageResponse {
   bool success = 1;					// Успешно ли приняты данные
-  string message = 2;				// Сообщение (например, ошибка или подтверждение)
+  string message = 2;				// Сообщение
 }
 
 // Сообщение для запроса результатов
 message ResultRequest {
 }
 
-// Сообщение с результатами распознавания
+// Объект камеры
+message CameraFrames {
+  int32 camera_index = 1;
+  repeated bytes frames = 2;
+}
+
+// Сообщение с результатами распознавания каждой активной камеры
 message ResultResponse {
-  repeated bytes processed_images = 1;		// Обработанные изображения
-  repeated string recognized_labels = 2;	// Распознанные метки
+  repeated CameraFrames camera_frames = 1;		// Объект камеры, с кадрами и номером камеры
+  repeated string recognized_labels = 2;		// Распознанные пользователи (лейблы)
 }

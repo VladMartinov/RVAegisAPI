@@ -40,13 +40,14 @@ namespace RVAegis.Helpers
             }
         }
 
-        public static async Task BroadcastImageAsync(byte[] imageData)
+        public static async Task BroadcastJsonAsync(string jsonMessage)
         {
+            var messageBytes = System.Text.Encoding.UTF8.GetBytes(jsonMessage);
             foreach (var socket in _activeSockets)
             {
                 if (socket.State == WebSocketState.Open)
                 {
-                    await socket.SendAsync(new ArraySegment<byte>(imageData), WebSocketMessageType.Binary, true, CancellationToken.None);
+                    await socket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
         }
