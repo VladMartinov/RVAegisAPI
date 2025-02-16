@@ -13,10 +13,13 @@ namespace RVAegis.Services.Classes
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var statusTask = StartCameraStatusCheckerAsync(stoppingToken);
-            var framesTask = StartCameraFramesSenderAsync(stoppingToken);
+            await StartCameraFramesSenderAsync(stoppingToken);
 
-            await Task.WhenAll(statusTask, framesTask);
+            // Если понадобится функционал запроса активных камер
+            // var framesTask = StartCameraFramesSenderAsync(stoppingToken);
+            // var statusTask = StartCameraStatusCheckerAsync(stoppingToken);
+
+            // await Task.WhenAll(statusTask, framesTask);
         }
 
         private async Task StartCameraStatusCheckerAsync(CancellationToken stoppingToken)
@@ -124,6 +127,7 @@ namespace RVAegis.Services.Classes
                         var message = new
                         {
                             type = "frames",
+                            cameras = result.CameraFrames.Select((item) => item.CameraIndex),
                             cameraIndex = cameraFrame.CameraIndex,
                             images = cameraFrame.Frames.Select(f => Convert.ToBase64String(f.ToByteArray())).ToList()
                         };
@@ -146,7 +150,7 @@ namespace RVAegis.Services.Classes
                     await Task.Delay(5000, stoppingToken);
                 }
 
-                await Task.Delay(100, stoppingToken);
+                await Task.Delay(50, stoppingToken);
             }
         }
 
