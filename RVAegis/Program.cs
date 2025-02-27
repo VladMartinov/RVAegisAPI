@@ -112,7 +112,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Добавляем WebSocket middleware
-app.UseWebSockets();
+var webSocketOptions = new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2)
+};
+
+webSocketOptions.AllowedOrigins.Add(builder.Configuration.GetSection("WebClientAddress").Value);
+
+app.UseWebSockets(webSocketOptions);
 app.UseMiddleware<WebSocketMiddleware>();
 
 app.MapControllers();
