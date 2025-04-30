@@ -1,13 +1,15 @@
 ﻿using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
+using RVAegis.Services.Interfaces;
 using System.Text.Json;
 
 namespace RVAegis.Services.Classes
 {
-    public class ImageBroadcastService(FaceRecognition.FaceRecognitionClient grpcClient) : BackgroundService
+    public class ImageBroadcastService(FaceRecognition.FaceRecognitionClient grpcClient, IServiceScopeFactory serviceScopeFactory) : BackgroundService
     {
         private readonly FaceRecognition.FaceRecognitionClient _grpcClient = grpcClient;
         private bool _isGrpcConnected = false;
-        private HashSet<int> _activeCameras = new();
+        private HashSet<int> _activeCameras = [];
         private bool _isFirstStatusCheck = true;
         private readonly object _syncRoot = new();
 
@@ -51,7 +53,7 @@ namespace RVAegis.Services.Classes
                     cancellationToken: stoppingToken
                 );
 
-                var currentCameras = new HashSet<int>(result.CameraFrames.Select(cf => cf.CameraIndex));
+                var currentCameras = new HashSet<int>(result.Response.Select(r => r.CameraIndex).ToList());
                 bool hasChanged;
 
                 lock (_syncRoot)
@@ -116,24 +118,42 @@ namespace RVAegis.Services.Classes
                         cancellationToken: stoppingToken
                     );
 
-                    if (result.CameraFrames.Count == 0)
+                    bool isEmply = false;
+
+                    foreach (var item in result.Response)
+                    {
+                        int cameraIndex = item.CameraIndex;
+
+                        foreach (var frame in item.Frames)
+                        {
+                            if (frame.Frame != null)
+                            {
+                                for (int i = 0; i < frame.RecognizedLabels.Count; i++)
+                                {
+                                    using var scope = serviceScopeFactory.CreateScope();
+                                    var loggingService = scope.ServiceProvider.GetRequiredService<ILoggingService>();
+                                    await loggingService.LogRecognitionAsync(frame.RecognizedLabels[i], frame.CroppedFaces[i].ToByteArray(), cameraIndex);
+                                }
+                            }
+
+                            // Отправка через WebSocket
+                            var message = new
+                            {
+                                type = "frames",
+                                cameras = result.Response.Select(r => r.CameraIndex).ToList(),
+                                cameraIndex = cameraIndex,
+                                images = Convert.ToBase64String(frame.Frame.ToByteArray()),
+                            };
+
+                            string jsonMessage = JsonSerializer.Serialize(message);
+                            await Helpers.WebSocketMiddleware.BroadcastJsonAsync(jsonMessage);
+                        }
+                    }
+
+                    if (isEmply)
                     {
                         await Task.Delay(100, stoppingToken);
                         continue;
-                    }
-
-                    foreach (var cameraFrame in result.CameraFrames)
-                    {
-                        var message = new
-                        {
-                            type = "frames",
-                            cameras = result.CameraFrames.Select((item) => item.CameraIndex),
-                            cameraIndex = cameraFrame.CameraIndex,
-                            images = cameraFrame.Frames.Select(f => Convert.ToBase64String(f.ToByteArray())).ToList()
-                        };
-
-                        string jsonMessage = JsonSerializer.Serialize(message);
-                        await Helpers.WebSocketMiddleware.BroadcastJsonAsync(jsonMessage);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Unavailable ||

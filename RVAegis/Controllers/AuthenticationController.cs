@@ -144,7 +144,7 @@ namespace RVAegis.Controllers
             var encodedToken = Uri.EscapeDataString(token);
 
             // Формирование безопасной ссылки
-            var resetLink = $"{configuration["WebClientAddress"]}/reset-password?token={encodedToken}";
+            var resetLink = $"{configuration["WebClientAddress"]}/#/reset-password?token={encodedToken}";
 
             // Отправка письма
             await emailService.SendPasswordResetEmailAsync(user.Email, resetLink);

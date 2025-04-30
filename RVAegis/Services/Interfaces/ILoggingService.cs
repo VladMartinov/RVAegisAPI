@@ -7,5 +7,6 @@ namespace RVAegis.Services.Interfaces
     {
         Task AddHistoryRecordAsync(User user, TypeActionEnum typeActionEnum);
         Task AddHistoryRecordAsync(string token, TypeActionEnum typeActionEnum);
+        Task LogRecognitionAsync(string label, byte[] imageData, int cameraIndex);
     }
 }

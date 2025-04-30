@@ -29,13 +29,18 @@ message ResultRequest {
 }
 
 // Объект камеры
-message CameraFrames {
-  int32 camera_index = 1;
-  repeated bytes frames = 2;
+message ProcessedFrame {
+  bytes frame = 1;
+  repeated bytes cropped_faces = 2;
+  repeated string recognized_labels = 3;
 }
 
 // Сообщение с результатами распознавания каждой активной камеры
+message CamerasObject {
+  int32 camera_index = 1;						// Индекс камеры
+  repeated ProcessedFrame frames = 2;			// Объекты камер, с кадрами, обрезанными лицами и лейблом
+}
+
 message ResultResponse {
-  repeated CameraFrames camera_frames = 1;		// Объект камеры, с кадрами и номером камеры
-  repeated string recognized_labels = 2;		// Распознанные пользователи (лейблы)
+  repeated CamerasObject response = 1;
 }

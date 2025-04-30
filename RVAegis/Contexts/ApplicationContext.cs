@@ -17,6 +17,7 @@ namespace RVAegis.Contexts
 
         public DbSet<TypeAction> TypeActions { get; set; }
         public DbSet<HistoryRecord> HistoryRecords { get; set; }
+        public DbSet<RecognitionLog> RecognitionLogs { get; set; }
 
         public DbSet<Image> Images { get; set; }
     }

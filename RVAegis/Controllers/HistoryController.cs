@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RVAegis.Contexts;
 using RVAegis.DTOs.HistoryDTOs;
-using RVAegis.DTOs.UserDTOs;
-using RVAegis.Models.HistoryModels;
 
 namespace RVAegis.Controllers
 {
@@ -53,6 +51,27 @@ namespace RVAegis.Controllers
                 typeActionsDtos.Add(new TypeActionDto(typeAction));
 
             return Ok(typeActionsDtos);
+        }
+
+        // GET api/logs/recognition-logs
+        /// <summary>
+        /// Получение всех логов распознавания лиц.
+        /// </summary>
+        /// <returns>Список логов распознаваний</returns>
+        [ProducesResponseType(typeof(List<RecognitionLogDto>), 200)]
+        [ProducesResponseType(401)]
+        [HttpGet("recognition-logs")]
+        public IActionResult GetRecognitionLogs()
+        {
+            var recognitionLogs = applicationContext.RecognitionLogs
+                .OrderByDescending(log => log.RecognitionTime)
+                .ToList();
+
+            var recognitionLogDtos = recognitionLogs
+                .Select(log => new RecognitionLogDto(log))
+                .ToList();
+
+            return Ok(recognitionLogDtos);
         }
     }
 }
